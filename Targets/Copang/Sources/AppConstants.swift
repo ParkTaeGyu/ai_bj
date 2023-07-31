@@ -10,4 +10,5 @@ import Foundation
 
 struct AppConstants {
 //  static let defaultAnimation: Animation
+  static let initialPath: RoutePath = .splash
 }

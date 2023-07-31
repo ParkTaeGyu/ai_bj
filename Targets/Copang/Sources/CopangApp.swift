@@ -10,11 +10,11 @@ import SwiftUI
 
 @main
 struct CopangApp: App {
-  @Environment(\.scenePhase) var scenePhase
+    @Environment(\.scenePhase) var scenePhase
 
-  var body: some Scene {
-    WindowGroup {
-      RootView()
+    var body: some Scene {
+        WindowGroup {
+            RootView()
+        }
     }
-  }
 }

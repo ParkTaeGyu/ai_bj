@@ -15,7 +15,7 @@ struct RootView: View {
     ConditionalView(
       isAppInitialized,
       trueContent: {
-        Text("App Initialized")
+        RouteConfiguredView()
       }
     )
     .onLoad {
@@ -29,3 +29,12 @@ struct RootView: View {
     }
   }
 }
+
+fileprivate struct RouteConfiguredView: View {
+  var body: some View {
+    RootRouterView { routeOption in
+      routeOption.buildConfiguredView()
+    }
+  }
+}
+
