@@ -1,0 +1,28 @@
+name: yt-ai-streamer (manual run)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+      LIVE_CHAT_ID: ${{ secrets.LIVE_CHAT_ID }}
+      BOT_NAME: AI
+      ONLY_WHEN_MENTIONED: "1"
+      RESPONSE_COOLDOWN_SEC: "10"
+      TTS_ENABLED: "0"
+      STRIP_URLS: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Smoke run (120s)
+        run: timeout 120s python /home/runner/work/ai_bj/ai_bj/yt_ai_streamer/main.py
