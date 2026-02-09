@@ -8,6 +8,7 @@ import urllib.parse
 import urllib.request
 import re
 from typing import Optional
+from urllib.error import HTTPError
 
 
 def load_env(path: str) -> None:
@@ -27,9 +28,17 @@ def load_env(path: str) -> None:
 
 def http_get_json(url: str, timeout: int = 15) -> dict:
     req = urllib.request.Request(url, headers={"User-Agent": "yt-ai-streamer/0.1"})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        data = resp.read().decode("utf-8")
-    return json.loads(data)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = resp.read().decode("utf-8")
+        return json.loads(data)
+    except HTTPError as exc:
+        body = ""
+        try:
+            body = exc.read().decode("utf-8")
+        except Exception:
+            body = ""
+        raise RuntimeError(f"HTTP {exc.code} {exc.reason}: {body}") from exc
 
 
 def http_post_json(url: str, payload: dict, timeout: int = 30) -> dict:
