@@ -7,6 +7,7 @@ import time
 import urllib.parse
 import urllib.request
 import re
+from typing import Optional
 
 
 def load_env(path: str) -> None:
@@ -44,7 +45,7 @@ def http_post_json(url: str, payload: dict, timeout: int = 30) -> dict:
     return json.loads(data)
 
 
-def list_live_chat_messages(api_key: str, live_chat_id: str, page_token: str | None) -> dict:
+def list_live_chat_messages(api_key: str, live_chat_id: str, page_token: Optional[str]) -> dict:
     params = {
         "key": api_key,
         "liveChatId": live_chat_id,
@@ -94,7 +95,7 @@ def write_overlay(path: str, lines: list[str]) -> None:
         f.write("\n".join(lines).strip() + "\n")
 
 
-def speak(text: str, voice: str | None, rate: str | None) -> None:
+def speak(text: str, voice: Optional[str], rate: Optional[str]) -> None:
     cmd = ["say"]
     if voice:
         cmd += ["-v", voice]
