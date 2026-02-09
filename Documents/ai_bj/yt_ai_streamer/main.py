@@ -2,6 +2,7 @@
 import json
 import os
 import subprocess
+import threading
 import time
 import urllib.parse
 import urllib.request
@@ -55,26 +56,36 @@ def list_live_chat_messages(api_key: str, live_chat_id: str, page_token: str | N
     return http_get_json(url)
 
 
-def generate_response(author: str, message: str, bot_name: str, ollama_model: str | None) -> str:
-    if ollama_model:
-        prompt = (
-            f"너는 유튜브 라이브 스트리머 AI야. 한국어로 짧고 친근하게 답변해. "
-            f"대화 상대는 시청자 {author}이고, 메시지는: {message}\n"
-            f"{bot_name}:"
-        )
-        payload = {
-            "model": ollama_model,
-            "prompt": prompt,
-            "stream": False,
-        }
-        try:
-            result = http_post_json("http://localhost:11434/api/generate", payload)
-            text = result.get("response", "").strip()
-            if text:
-                return text
-        except Exception:
-            pass
-    return f"안녕하세요 {author}님! 메시지 잘 봤어요: {message}"
+def generate_response(
+    author: str,
+    message: str,
+    bot_name: str,
+    ollama_model: str,
+    ollama_host: str,
+    tone_desc: str,
+    max_tokens: int,
+    temperature: float,
+) -> str:
+    prompt = (
+        f"너는 유튜브 라이브 스트리머 AI야. 한국어로 짧고 친근하게 답변해. "
+        f"말투는 {tone_desc}로 해줘. "
+        f"대화 상대는 시청자 {author}이고, 메시지는: {message}\n"
+        f"{bot_name}:"
+    )
+    payload = {
+        "model": ollama_model,
+        "prompt": prompt,
+        "stream": False,
+        "options": {
+            "temperature": temperature,
+            "num_predict": max_tokens,
+        },
+    }
+    result = http_post_json(f"{ollama_host.rstrip('/')}/api/generate", payload)
+    text = result.get("response", "").strip()
+    if not text:
+        raise RuntimeError("LLM 응답이 비어 있습니다.")
+    return text
 
 
 def write_overlay(path: str, lines: list[str]) -> None:
@@ -100,7 +111,10 @@ def main() -> None:
     live_chat_id = os.environ.get("LIVE_CHAT_ID", "").strip()
     bot_name = os.environ.get("BOT_NAME", "AI")
     overlay_path = os.environ.get("OVERLAY_PATH", os.path.join(os.path.dirname(__file__), "overlay.txt"))
-    ollama_model = os.environ.get("OLLAMA_MODEL")
+    ollama_model = os.environ.get("OLLAMA_MODEL", "").strip()
+    ollama_host = os.environ.get("OLLAMA_HOST", "http://localhost:11434").strip()
+    max_tokens = int(os.environ.get("LLM_MAX_TOKENS", "120"))
+    temperature = float(os.environ.get("LLM_TEMPERATURE", "0.6"))
     tone_preset = os.environ.get("TONE_PRESET", "balanced").strip().lower()
     only_when_mentioned = os.environ.get("ONLY_WHEN_MENTIONED", "1") != "0"
     cooldown_sec = int(os.environ.get("RESPONSE_COOLDOWN_SEC", "10"))
@@ -117,6 +131,8 @@ def main() -> None:
 
     if not api_key or not live_chat_id:
         raise SystemExit("YOUTUBE_API_KEY 또는 LIVE_CHAT_ID가 필요합니다. .env를 확인하세요.")
+    if not ollama_model:
+        raise SystemExit("OLLAMA_MODEL이 필요합니다. LLM 생성이 필수입니다.")
 
     tone_map = {
         "calm": "차분하고 안정적인 말투",
@@ -177,20 +193,27 @@ def main() -> None:
                     if (hash(msg_key) % 100) > int(response_random_ratio * 100):
                         continue
                 if mention_ok and (now - last_response_ts) >= cooldown_sec:
-                    if ollama_model:
-                        # Tone control is applied to the model prompt only.
-                        base_msg = msg_norm
-                        prompt_hint = f"말투는 {tone_desc}로 해줘."
-                        response = generate_response(author, f"{base_msg}\n{prompt_hint}", bot_name, ollama_model)
-                    else:
-                        response = generate_response(author, msg_norm, bot_name, ollama_model)
+                    response = generate_response(
+                        author=author,
+                        message=msg_norm,
+                        bot_name=bot_name,
+                        ollama_model=ollama_model,
+                        ollama_host=ollama_host,
+                        tone_desc=tone_desc,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                    )
                     lines = [
                         f"{author}: {msg_norm}",
                         f"{bot_name}: {response}",
                     ]
                     write_overlay(overlay_path, lines)
                     if tts_enabled:
-                        speak(response, tts_voice, tts_rate)
+                        threading.Thread(
+                            target=speak,
+                            args=(response, tts_voice, tts_rate),
+                            daemon=True,
+                        ).start()
                     print(f"[chat] {author}: {msg}")
                     print(f"[bot] {response}")
                     last_response_ts = now

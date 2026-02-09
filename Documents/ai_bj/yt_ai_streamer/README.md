@@ -47,7 +47,7 @@ OBS에서 `텍스트(FreeType 2)` 소스를 추가하고, 텍스트 내용을 `o
 3. macOS 시스템 출력 장치를 그 Multi-Output으로 설정합니다.
 4. OBS에서 **오디오 입력 캡처**로 BlackHole을 추가합니다.
 
-## 5) Ollama 사용 (선택)
+## 5) Ollama 사용 (필수)
 Ollama를 설치하고 모델을 받아둔 뒤 `.env`에 `OLLAMA_MODEL`을 넣으면 로컬 LLM 응답을 생성합니다.
 예: `OLLAMA_MODEL=llama3.1:8b`
 
@@ -56,6 +56,10 @@ Ollama를 설치하고 모델을 받아둔 뒤 `.env`에 `OLLAMA_MODEL`을 넣�
 - `calm` (차분)
 - `balanced` (기본)
 - `energetic` (텐션업)
+
+### LLM 옵션
+- `LLM_MAX_TOKENS`: 응답 길이 제한
+- `LLM_TEMPERATURE`: 창의성/변동성
 
 ## 6) TTS 설정 (macOS 기본 `say`)
 `.env`에서 아래 옵션을 설정하세요.
