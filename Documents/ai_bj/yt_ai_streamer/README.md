@@ -13,7 +13,7 @@
 cd /Users/parktaekyu/Documents/ai_bj/yt_ai_streamer
 cp .env.example .env
 ```
-`.env`를 열어 아래 값을 채우세요.
+`.env`를 열어 아래 값을 채우세요. `.env`는 Git에 포함하지 않습니다.
 - `YOUTUBE_API_KEY`
 - `LIVE_CHAT_ID`
 
@@ -68,3 +68,4 @@ Ollama를 설치하고 모델을 받아둔 뒤 `.env`에 `OLLAMA_MODEL`을 넣�
 
 ## 참고
 - 유튜브 채팅에 **직접 답글을 보내는 기능**은 OAuth 설정이 필요합니다. 이 프로토타입은 오버레이 출력까지만 포함합니다.
+- CI에서 실행할 경우 GitHub Secrets에 `YOUTUBE_API_KEY`, `LIVE_CHAT_ID`를 등록하고 환경 변수로 주입하세요.
