@@ -20,6 +20,13 @@ cp .env.example .env
 ### LIVE_CHAT_ID 얻는 방법 (요약)
 YouTube Data API의 `liveBroadcasts.list` 또는 `videos.list`로 현재 라이브의 `liveChatId`를 확인합니다.
 
+#### 스크립트로 추출
+```bash
+python3 /Users/parktaekyu/Documents/ai_bj/yt_ai_streamer/get_live_chat_id.py \
+  --api-key YOUR_API_KEY \
+  --video-id VIDEO_ID
+```
+
 ## 3) 실행
 ```bash
 python3 main.py
