@@ -62,7 +62,7 @@ def list_live_chat_messages(api_key: str, live_chat_id: str, page_token: Optiona
     }
     if page_token:
         params["pageToken"] = page_token
-    url = "https://www.googleapis.com/youtube/v3/liveChatMessages?" + urllib.parse.urlencode(params)
+    url = "https://www.googleapis.com/youtube/v3/liveChat/messages?" + urllib.parse.urlencode(params)
     return http_get_json(url)
 
 
