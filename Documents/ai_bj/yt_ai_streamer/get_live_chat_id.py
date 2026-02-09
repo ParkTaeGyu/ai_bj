@@ -7,6 +7,21 @@ import urllib.parse
 import urllib.request
 
 
+def load_env(path: str) -> None:
+    if not os.path.exists(path):
+        return
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and key not in os.environ:
+                os.environ[key] = value
+
+
 def http_get_json(url: str, timeout: int = 15) -> dict:
     req = urllib.request.Request(url, headers={"User-Agent": "yt-ai-streamer/0.1"})
     with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -42,6 +57,7 @@ def extract_video_id(value: str) -> str:
 
 
 def main() -> None:
+    load_env(os.path.join(os.path.dirname(__file__), ".env"))
     parser = argparse.ArgumentParser(description="Get activeLiveChatId from a live video ID.")
     parser.add_argument("--api-key", dest="api_key", default=os.environ.get("YOUTUBE_API_KEY", ""))
     parser.add_argument("--video-id", dest="video_id", default=os.environ.get("VIDEO_ID", ""))
