@@ -26,6 +26,12 @@ python3 /Users/parktaekyu/Documents/ai_bj/yt_ai_streamer/get_live_chat_id.py \
   --api-key YOUR_API_KEY \
   --video-id VIDEO_ID
 ```
+또는 URL로:
+```bash
+python3 /Users/parktaekyu/Documents/ai_bj/yt_ai_streamer/get_live_chat_id.py \
+  --api-key YOUR_API_KEY \
+  --url "https://www.youtube.com/watch?v=VIDEO_ID"
+```
 
 ## 3) 실행
 ```bash

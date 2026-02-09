@@ -14,17 +14,53 @@ def http_get_json(url: str, timeout: int = 15) -> dict:
     return json.loads(data)
 
 
+def extract_video_id(value: str) -> str:
+    value = value.strip()
+    if not value:
+        return ""
+    # Direct ID
+    if len(value) >= 6 and all(c.isalnum() or c in "-_" for c in value):
+        # Might be an ID or a URL; if it looks like a URL, parse it below.
+        if not value.startswith("http"):
+            return value
+    # URL cases
+    try:
+        parsed = urllib.parse.urlparse(value)
+        if parsed.netloc in ("youtu.be", "www.youtu.be"):
+            return parsed.path.strip("/").split("/")[0]
+        if "youtube.com" in parsed.netloc:
+            qs = urllib.parse.parse_qs(parsed.query)
+            if "v" in qs and qs["v"]:
+                return qs["v"][0]
+            # Shorts and live URLs: /shorts/{id}, /live/{id}
+            parts = [p for p in parsed.path.split("/") if p]
+            if len(parts) >= 2 and parts[0] in ("shorts", "live"):
+                return parts[1]
+    except Exception:
+        return ""
+    return ""
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Get activeLiveChatId from a live video ID.")
     parser.add_argument("--api-key", dest="api_key", default=os.environ.get("YOUTUBE_API_KEY", ""))
     parser.add_argument("--video-id", dest="video_id", default=os.environ.get("VIDEO_ID", ""))
+    parser.add_argument(
+        "--url",
+        dest="video_url",
+        default=os.environ.get("VIDEO_URL", ""),
+        help="YouTube video URL (v=, youtu.be, /live/, /shorts/).",
+    )
     args = parser.parse_args()
 
     api_key = args.api_key.strip()
-    video_id = args.video_id.strip()
+    video_id = extract_video_id(args.video_id) or extract_video_id(args.video_url)
 
     if not api_key or not video_id:
-        print("YOUTUBE_API_KEY(또는 --api-key)와 VIDEO_ID(또는 --video-id)가 필요합니다.", file=sys.stderr)
+        print(
+            "YOUTUBE_API_KEY(또는 --api-key)와 VIDEO_ID(--video-id) 또는 URL(--url)가 필요합니다.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     params = {"part": "liveStreamingDetails", "id": video_id, "key": api_key}
