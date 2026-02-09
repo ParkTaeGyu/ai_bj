@@ -38,6 +38,12 @@ OBS에서 `텍스트(FreeType 2)` 소스를 추가하고, 텍스트 내용을 `o
 Ollama를 설치하고 모델을 받아둔 뒤 `.env`에 `OLLAMA_MODEL`을 넣으면 로컬 LLM 응답을 생성합니다.
 예: `OLLAMA_MODEL=llama3.1:8b`
 
+### 말투 프리셋 (Ollama 사용 시)
+`.env`에 `TONE_PRESET`을 추가하면 말투를 조절합니다.
+- `calm` (차분)
+- `balanced` (기본)
+- `energetic` (텐션업)
+
 ## 6) TTS 설정 (macOS 기본 `say`)
 `.env`에서 아래 옵션을 설정하세요.
 - `TTS_ENABLED=1` (기본 ON)

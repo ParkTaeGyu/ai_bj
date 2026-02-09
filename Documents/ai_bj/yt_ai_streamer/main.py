@@ -101,6 +101,7 @@ def main() -> None:
     bot_name = os.environ.get("BOT_NAME", "AI")
     overlay_path = os.environ.get("OVERLAY_PATH", os.path.join(os.path.dirname(__file__), "overlay.txt"))
     ollama_model = os.environ.get("OLLAMA_MODEL")
+    tone_preset = os.environ.get("TONE_PRESET", "balanced").strip().lower()
     only_when_mentioned = os.environ.get("ONLY_WHEN_MENTIONED", "1") != "0"
     cooldown_sec = int(os.environ.get("RESPONSE_COOLDOWN_SEC", "10"))
     tts_enabled = os.environ.get("TTS_ENABLED", "1") != "0"
@@ -116,6 +117,13 @@ def main() -> None:
 
     if not api_key or not live_chat_id:
         raise SystemExit("YOUTUBE_API_KEY 또는 LIVE_CHAT_ID가 필요합니다. .env를 확인하세요.")
+
+    tone_map = {
+        "calm": "차분하고 안정적인 말투",
+        "balanced": "친근하고 자연스러운 말투",
+        "energetic": "텐션 높고 밝은 말투",
+    }
+    tone_desc = tone_map.get(tone_preset, tone_map["balanced"])
 
     page_token = None
     last_response_ts = 0.0
@@ -169,7 +177,13 @@ def main() -> None:
                     if (hash(msg_key) % 100) > int(response_random_ratio * 100):
                         continue
                 if mention_ok and (now - last_response_ts) >= cooldown_sec:
-                    response = generate_response(author, msg_norm, bot_name, ollama_model)
+                    if ollama_model:
+                        # Tone control is applied to the model prompt only.
+                        base_msg = msg_norm
+                        prompt_hint = f"말투는 {tone_desc}로 해줘."
+                        response = generate_response(author, f"{base_msg}\n{prompt_hint}", bot_name, ollama_model)
+                    else:
+                        response = generate_response(author, msg_norm, bot_name, ollama_model)
                     lines = [
                         f"{author}: {msg_norm}",
                         f"{bot_name}: {response}",
